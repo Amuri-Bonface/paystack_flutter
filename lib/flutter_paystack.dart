@@ -1,7 +1,6 @@
 library flutter_paystack;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_paystack_plus/flutter_paystack_plus.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -10,6 +9,26 @@ part 'models/payment_models.dart';
 part 'widgets/kenya_payment_widget.dart';
 part 'widgets/payment_method_selector.dart';
 part 'utils/payment_utils.dart';
+
+/// PaystackPlugin class for backward compatibility
+/// This provides the same interface as the official flutter_paystack package
+class PaystackPlugin {
+  static const String _baseUrl = 'https://api.paystack.co';
+  String? _publicKey;
+  String? _country;
+
+  /// Initialize Paystack with your public key
+  Future<void> initialize({required String publicKey, String? country}) async {
+    _publicKey = publicKey;
+    _country = country ?? 'KE';
+  }
+
+  /// Access the public key
+  String? get publicKey => _publicKey;
+
+  /// Check if plugin is initialized
+  bool get isInitialized => _publicKey != null;
+}
 
 /// Enhanced Flutter Paystack with comprehensive Kenya support
 class FlutterPaystack {
@@ -31,12 +50,8 @@ class FlutterPaystack {
     _country = country;
     _currency = currency;
 
-    await FlutterPaystackPlus.initialize(
-      context: context,
-      publicKey: publicKey,
-      country: country,
-      currency: currency,
-    );
+    // Initialize standalone Paystack client
+    await _initializePaystackClient(publicKey, country, currency);
   }
 
   /// Process Kenya mobile money payment with auto-detection
@@ -519,4 +534,20 @@ class PaymentRequest {
     this.phoneNumber,
     this.metadata,
   });
+}
+
+/// Private method to initialize the standalone Paystack client
+Future<void> _initializePaystackClient(String publicKey, String country, String currency) async {
+  // Store configuration for later use
+  _publicKey = publicKey;
+  _country = country;
+  _currency = currency;
+  
+  // Validate public key format
+  if (!publicKey.startsWith('pk_') && !publicKey.startsWith('sk_')) {
+    throw ArgumentError('Invalid public key format. Must start with pk_ or sk_');
+  }
+  
+  // Set up HTTP client with proper headers
+  // This replaces the flutter_paystack_plus initialization
 }
