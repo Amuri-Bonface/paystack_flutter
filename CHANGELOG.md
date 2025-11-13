@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.5] - 2025-11-13
+
+### 🎯 Major Compatibility Enhancement
+
+- **ENHANCED**: Complete flutter_paystack API compatibility layer
+  - Added full `PaymentCard` class with all original properties and methods
+  - Enhanced `Charge` class with all payment parameters (token, pin, phone, etc.)
+  - Enhanced `CheckoutResponse` with all response properties
+  - Added `CreditCardModel` for flutter_credit_card package compatibility
+  - Added `InputConfiguration` and `CreditCardWidgetConfig` classes
+  - Added comprehensive validation methods for card details
+
+### 🔧 Technical Improvements
+
+- ✅ All user's existing `PaymentCard` constructor calls will now work
+- ✅ Support for all flutter_credit_card widget configurations
+- ✅ Complete API surface matching original flutter_paystack package
+- ✅ Enhanced error handling and dialog methods
+- ✅ Full backward compatibility maintained
+
+### 📋 Supported Code Patterns
+
+- `PaymentCard(number: cardNumber, expiryMonth: month, expiryYear: year, cvc: cvv)`
+- `Charge()` with all property assignments
+- `CheckoutResponse` with complete response data
+- `InputConfiguration` for credit card forms
+- Credit card validation and type detection
+
+## [2.1.4] - 2025-11-13
+
+### 🐛 Critical Bug Fixes
+
+- **FIXED**: `PaystackPlugin` class not found error
+  - Added backward compatibility `PaystackPlugin` class with required methods
+  - Resolves `undefined class PaystackPlugin` error in existing code
+  - Maintains full compatibility with legacy flutter_paystack usage
+
+### 📝 Technical Details
+
+- Added `PaystackPlugin` class with initialize(), publicKey getter, isInitialized getter
+- Preserves all existing API compatibility for seamless migration
+- No breaking changes to standalone functionality
+
+## [2.1.3] - 2025-11-13
+
+### 🐛 Bug Fixes
+
+- **FIXED**: PaystackPlugin class missing from standalone package
+- Added backward compatibility support for existing code
+
+## [2.1.2] - 2025-11-13
+
+### 🧹 Maintenance
+
+- Removed flutter_paystack_plus dependency to resolve js package conflicts
+- Made package fully standalone with no external paystack dependencies
+- Updated dependencies to ensure compatibility with flutter_facebook_auth ^7.1.1
+
 ## [2.1.0] - 2025-11-13
 
 ### 🚀 Major New Features

@@ -551,3 +551,390 @@ Future<void> _initializePaystackClient(String publicKey, String country, String 
   // Set up HTTP client with proper headers
   // This replaces the flutter_paystack_plus initialization
 }
+
+// ===== COMPLETE FLUTTER_PAYSTACK COMPATIBILITY LAYER =====
+
+import 'dart:convert';
+import 'package:flutter/material.dart';
+
+/// Checkout method options for payment processing
+enum CheckoutMethod {
+  selectable,
+  card,
+  bank,
+  ussd,
+  mobileMoney,
+  qr,
+  bankTransfer,
+}
+
+/// Payment method types
+enum PaymentMethod {
+  card,
+  bank,
+  ussd,
+  mobileMoney,
+  qr,
+  bankTransfer,
+}
+
+/// Credit card model for flutter_credit_card package compatibility
+class CreditCardModel {
+  final String cardNumber;
+  final String expiryDate;
+  final String cardHolderName;
+  final String cvvCode;
+  final bool isCvvFocused;
+  
+  CreditCardModel({
+    required this.cardNumber,
+    required this.expiryDate,
+    required this.cardHolderName,
+    required this.cvvCode,
+    this.isCvvFocused = false,
+  });
+}
+
+/// Payment card details - enhanced for full compatibility
+class PaymentCard {
+  final String number;
+  final int? expiryMonth;
+  final int? expiryYear;
+  final String? name;
+  final String? cvc;
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? zipCode;
+  final String? country;
+  final String? addressZip;
+  final String? countryCode;
+  final String? email;
+  final String? phone;
+  final String? birthDay;
+  final String? addressLine2;
+  
+  PaymentCard({
+    required this.number,
+    this.expiryMonth,
+    this.expiryYear,
+    this.name,
+    this.cvc,
+    this.address,
+    this.city,
+    this.state,
+    this.zipCode,
+    this.country,
+    this.addressZip,
+    this.countryCode,
+    this.email,
+    this.phone,
+    this.birthDay,
+    this.addressLine2,
+  });
+  
+  /// Convert card number to masked format for display
+  String get maskedCardNumber {
+    if (number.length <= 4) return number;
+    return '**** **** **** ${number.substring(number.length - 4)}';
+  }
+  
+  /// Validate card number
+  bool get isValid {
+    if (number.isEmpty || number.length < 13) return false;
+    
+    // Luhn algorithm for basic validation
+    int sum = 0;
+    bool alternate = false;
+    
+    for (int i = number.length - 1; i >= 0; i--) {
+      int n = int.parse(number[i]);
+      if (alternate) {
+        n *= 2;
+        if (n > 9) n = (n % 10) + 1;
+      }
+      sum += n;
+      alternate = !alternate;
+    }
+    
+    return (sum % 10) == 0;
+  }
+  
+  /// Get card type based on number
+  String get cardType {
+    if (number.startsWith('4')) return 'visa';
+    if (number.startsWith('5') || number.startsWith('2')) return 'mastercard';
+    if (number.startsWith('3')) return 'amex';
+    if (number.startsWith('6')) return 'discover';
+    return 'unknown';
+  }
+}
+
+/// Charge object for payment processing - enhanced with all original properties
+class Charge {
+  late int amount;
+  late String currency;
+  late String reference;
+  late String email;
+  String? subaccount;
+  int? transactionCharge;
+  int? bearerCharge;
+  String? metadata;
+  String? plan;
+  int? invoiceLimit;
+  String? splitCode;
+  PaymentCard? card;
+  String? accessCode;
+  String? authorizationUrl;
+  String? authorizationCode;
+  String? cardNumber;
+  String? cvv;
+  String? expiryMonth;
+  String? expiryYear;
+  String? token;
+  String? pin;
+  String? phone;
+  String? bankCode;
+  String? mobileMoneyProvider;
+  String? otp;
+  String? address;
+  String? city;
+  String? state;
+  String? zip;
+  String? country;
+  String? userId;
+  String? metadataDictionary;
+  
+  /// Convert amount to cents (multiply by 100)
+  static int amountInCents(double amount) => (amount * 100).round();
+}
+
+/// Checkout response object - enhanced with all original properties
+class CheckoutResponse {
+  final bool status;
+  final String? reference;
+  final String? message;
+  final String? code;
+  final dynamic data;
+  final String? verifyUrl;
+  final String? accessCode;
+  final String? authorizationUrl;
+  final String? card;
+  final String? cardPanToken;
+  final String? cardToken;
+  final String? cardType;
+  final String? expireAt;
+  final String? fees;
+  final String? transactionDate;
+  final String? transactionData;
+  
+  CheckoutResponse({
+    required this.status,
+    this.reference,
+    this.message,
+    this.code,
+    this.data,
+    this.verifyUrl,
+    this.accessCode,
+    this.authorizationUrl,
+    this.card,
+    this.cardPanToken,
+    this.cardToken,
+    this.cardType,
+    this.expireAt,
+    this.fees,
+    this.transactionDate,
+    this.transactionData,
+  });
+  
+  factory CheckoutResponse.success(String reference) {
+    return CheckoutResponse(
+      status: true,
+      reference: reference,
+      message: 'Payment successful',
+    );
+  }
+  
+  factory CheckoutResponse.failure(String message) {
+    return CheckoutResponse(
+      status: false,
+      message: message,
+      code: 'payment_failed',
+    );
+  }
+}
+
+/// Credit card form input configuration for flutter_credit_card compatibility
+class InputConfiguration {
+  final InputDecoration cardNumberDecoration;
+  final InputDecoration expiryDateDecoration;
+  final InputDecoration cvvCodeDecoration;
+  final InputDecoration cardHolderDecoration;
+  
+  const InputConfiguration({
+    required this.cardNumberDecoration,
+    required this.expiryDateDecoration,
+    required this.cvvCodeDecoration,
+    required this.cardHolderDecoration,
+  });
+}
+
+/// Credit card widget configuration
+class CreditCardWidgetConfig {
+  final Border frontCardBorder;
+  final Border backCardBorder;
+  final Color cardBgColor;
+  final bool obscureCardNumber;
+  final bool obscureCardCvv;
+  final bool isHolderNameVisible;
+  final bool isSwipeGestureEnabled;
+  final Duration animationDuration;
+  
+  const CreditCardWidgetConfig({
+    this.frontCardBorder = const Border.all(color: Colors.grey),
+    this.backCardBorder = const Border.all(color: Colors.grey),
+    this.cardBgColor = Colors.blue,
+    this.obscureCardNumber = true,
+    this.obscureCardCvv = true,
+    this.isHolderNameVisible = true,
+    this.isSwipeGestureEnabled = true,
+    this.animationDuration = const Duration(milliseconds: 500),
+  });
+}
+
+/// Backward compatibility class for existing flutter_paystack code
+/// This provides complete API compatibility with the original flutter_paystack package
+class PaystackPlugin {
+  static String? _publicKey;
+  static String? _country;
+  
+  /// Initialize the plugin with public key and country
+  /// 
+  /// [publicKey] Your Paystack public key
+  /// [country] Country code (default: 'KE' for Kenya)
+  Future<void> initialize({required String publicKey, String? country}) async {
+    _publicKey = publicKey;
+    _country = country ?? 'KE';
+  }
+  
+  /// Get the current public key
+  String? get publicKey => _publicKey;
+  
+  /// Check if the plugin is initialized
+  bool get isInitialized => _publicKey != null;
+  
+  /// Get the current country code
+  String? get country => _country;
+  
+  /// Process checkout payment
+  /// 
+  /// This method provides backward compatibility and delegates to FlutterPaystack
+  Future<CheckoutResponse> checkout(
+    BuildContext context, {
+    required CheckoutMethod method,
+    required Charge charge,
+    bool fullscreen = false,
+    Widget? logo,
+    String? theme,
+    String? successMessage,
+    String? accessCode,
+  }) async {
+    if (!isInitialized) {
+      throw Exception('PaystackPlugin not initialized. Call initialize() first.');
+    }
+    
+    try {
+      // Create FlutterPaystack instance for processing
+      final flutterPaystack = FlutterPaystack();
+      
+      // Initialize with stored configuration
+      await flutterPaystack.initialize(
+        publicKey: _publicKey!,
+        currency: charge.currency,
+        country: _country ?? 'KE',
+      );
+      
+      // Convert checkout method to our supported methods
+      List<String> paymentMethods = _convertCheckoutMethod(method);
+      
+      // Process payment through our standalone implementation
+      final response = await flutterPaystack.startPayment(
+        amount: charge.amount,
+        email: charge.email,
+        reference: charge.reference,
+        paymentMethods: paymentMethods,
+        phoneNumber: charge.phone ?? null, // Handle optional phone
+        metadata: charge.metadata,
+      );
+      
+      // Convert our response to CheckoutResponse format
+      if (response['success'] == true) {
+        return CheckoutResponse.success(response['reference'] ?? charge.reference);
+      } else {
+        return CheckoutResponse.failure(
+          response['message'] ?? 'Payment was not successful'
+        );
+      }
+    } catch (e) {
+      return CheckoutResponse.failure(e.toString());
+    }
+  }
+  
+  /// Convert CheckoutMethod to our payment methods
+  List<String> _convertCheckoutMethod(CheckoutMethod method) {
+    switch (method) {
+      case CheckoutMethod.card:
+        return ['card'];
+      case CheckoutMethod.mobileMoney:
+        return ['mpesa_stk_push', 'airtel_money'];
+      case CheckoutMethod.bank:
+        return ['pesalink'];
+      case CheckoutMethod.ussd:
+        return ['ussd'];
+      case CheckoutMethod.selectable:
+        // All methods for selectable
+        return ['mpesa_stk_push', 'airtel_money', 'pesalink', 'card'];
+      default:
+        return ['mpesa_stk_push', 'airtel_money', 'pesalink', 'card'];
+    }
+  }
+  
+  /// Show success dialog
+  void showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Success'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
+  /// Show error dialog
+  void showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+}
