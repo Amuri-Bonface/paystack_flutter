@@ -1,0 +1,40 @@
+name: flutter_paystack
+description: Flutter plugin for Paystack Payment Gateway with comprehensive Kenya mobile money and bank transfer support including M-PESA STK Push, M-PESA Paybill, Airtel Money, and Pesalink. Supports Android, iOS, and Web platforms.
+version: 2.1.0
+homepage: https://github.com/Amuri-Bonface/flutter_paystack
+repository: https://github.com/Amuri-Bonface/flutter_paystack
+issue_tracker: https://github.com/Amuri-Bonface/flutter_paystack/issues
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_paystack_plus: ^2.3.0
+  http: ^1.1.0
+  shared_preferences: ^2.2.0
+  intl: ^0.18.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.amuribonface.flutter_paystack
+        pluginClass: FlutterPaystackPlugin
+      ios:
+        pluginClass: FlutterPaystackPlugin
+      web:
+        pluginClass: FlutterPaystackWebPlugin
+        fileName: flutter_paystack_web.dart
+
+  assets:
+    - images/
+    - images/kenya/
+    - images/payment_methods/
